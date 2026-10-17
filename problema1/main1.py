@@ -1,3 +1,5 @@
+# Laboratorio 2 por Jesús Alveo 1GS131
+
 import sys
 from pathlib import Path
 

@@ -1,3 +1,5 @@
+# Laboratorio 2 por Jesús Alveo 1GS131
+
 import sys
 from pathlib import Path
 
@@ -36,4 +38,3 @@ if __name__ == "__main__":
         ejecutarPrograma()
     except (FileNotFoundError, ValueError) as error:
         print(f"Error: {error}")
-
