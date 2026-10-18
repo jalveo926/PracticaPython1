@@ -21,11 +21,11 @@ def validarRegistro(fila, cedulas_existentes):
             float(str(fila['proyecto']).strip().replace(',', '.'))
         ]
         if any(nota < 0 or nota > 100 for nota in notas):
-            return False, f"Registro inválido: Las notas deben estar entre 0 y 100."
+            return False, f"Registro inválido {cedula}: Las notas deben estar entre 0 y 100."
     except ValueError:
-        return False, f"Registro inválido: Las notas deben ser números válidos."
+        return False, f"Registro inválido {cedula}: Las notas deben ser números válidos."
     except KeyError as e:
-        return False, f"Registro inválido: Falta la columna {e} en el archivo CSV."
+        return False, f"Registro inválido {cedula}: Falta la columna {e} en el archivo CSV."
     
     cedulas_existentes.add(cedula)
     return True, "Registro válido."

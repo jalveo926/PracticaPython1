@@ -11,7 +11,7 @@ from problema2.servicios.menuService import MenuProductos
 
 
 def leerEntero(mensaje):
-    """Solicita una cantidad entera y evita aceptar valores no válidos."""
+    #Solicita una cantidad entera y evita aceptar valores no válidos.
     while True:
         try:
             cantidad = int(input(mensaje))

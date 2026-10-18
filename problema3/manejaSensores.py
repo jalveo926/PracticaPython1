@@ -51,7 +51,6 @@ class SensoresPolars:
 
     def validarDatos(self):
         cantidadInicial = self.datos.height
-        import polars as pl
 
         datos = self.datos.with_columns(
             [
@@ -72,6 +71,61 @@ class SensoresPolars:
             ]
         )
 
+        registrosIncompletos = datos.filter(
+            pl.col("sensor").is_null()
+            | (pl.col("sensor") == "")
+            | pl.col("ubicacion").is_null()
+            | (pl.col("ubicacion") == "")
+            | pl.col("fecha").is_null()
+            | (pl.col("fecha") == "")
+            | pl.col("hora").is_null()
+            | (pl.col("hora") == "")
+        )
+        if registrosIncompletos.height:
+            Utilidades.advertencia(
+                f"Validación de registros incompletos: se encontraron "
+                f"{registrosIncompletos.height}."
+            )
+        else:
+            Utilidades.mostrarMensaje(
+                "Validación de registros incompletos: correcta."
+            )
+
+        identificadoresInvalidos = datos.filter(
+            pl.col("sensor").is_null()
+            | ~pl.col("sensor").str.contains(r"^S\d+$")
+        )
+        if identificadoresInvalidos.height:
+            Utilidades.advertencia(
+                f"Validación de identificadores: se encontraron "
+                f"{identificadoresInvalidos.height} inválidos."
+            )
+        else:
+            Utilidades.mostrarMensaje("Validación de identificadores: correcta.")
+
+        temperaturasInvalidas = datos.filter(pl.col("temperatura").is_null())
+        if temperaturasInvalidas.height:
+            Utilidades.advertencia(
+                f"Validación de temperaturas: se encontraron "
+                f"{temperaturasInvalidas.height} valores inválidos."
+            )
+        else:
+            Utilidades.mostrarMensaje("Validación de temperaturas: correcta.")
+
+        humedadesInvalidas = datos.filter(
+            pl.col("humedad").is_null()
+            | ~pl.col("humedad").is_between(0, 100, closed="both")
+        )
+        if humedadesInvalidas.height:
+            Utilidades.advertencia(
+                f"Validación de humedad entre 0 y 100: se encontraron "
+                f"{humedadesInvalidas.height} valores inválidos."
+            )
+        else:
+            Utilidades.mostrarMensaje(
+                "Validación de humedad entre 0 y 100: correcta."
+            )
+
         datosValidos = datos.filter(
             pl.col("sensor").is_not_null()
             & (pl.col("sensor") != "")
@@ -84,29 +138,13 @@ class SensoresPolars:
             & pl.col("temperatura").is_not_null()
             & pl.col("humedad").is_not_null()
             & pl.col("humedad").is_between(0, 100, closed="both")
+            & pl.col("sensor").str.contains(r"^S\d+$")
         )
 
         cantidadDescartada = cantidadInicial - datosValidos.height
         if cantidadDescartada:
             Utilidades.advertencia(
                 f"Se descartaron {cantidadDescartada} registros incompletos o inválidos."
-            )
-
-        sensores = datosValidos.get_column("sensor").to_list()
-        sensoresInvalidos = [
-            sensor
-            for sensor in sensores
-            if not isinstance(sensor, str)
-            or not sensor.startswith("S")
-            or not sensor[1:].isdigit()
-        ]
-        if sensoresInvalidos:
-            datosValidos = datosValidos.filter(
-                pl.col("sensor").str.starts_with("S")
-                & pl.col("sensor").str.slice(1).str.contains(r"^\d+$")
-            )
-            Utilidades.advertencia(
-                f"Se descartaron {len(sensoresInvalidos)} identificadores de sensor inválidos."
             )
 
         self.datos = datosValidos
